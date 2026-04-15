@@ -1,0 +1,198 @@
+<div style="max-width: 800px; margin: 0 auto; font-family: var(--font-sans);">
+  <style>
+    .quiz-header { text-align: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid var(--color-border-secondary); }
+    .quiz-title { font-size: 28px; font-weight: 500; margin: 0 0 0.5rem 0; color: var(--color-text-primary); }
+    .quiz-subtitle { font-size: 14px; color: var(--color-text-secondary); margin: 0; }
+    .progress-bar { height: 6px; background: var(--color-background-secondary); border-radius: 3px; margin-top: 1rem; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(to right, #10b981, #059669); border-radius: 3px; transition: width 0.3s ease; }
+    .question-card { background: var(--color-background-secondary); border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.5rem; margin-bottom: 1.5rem; }
+    .question-number { font-size: 12px; font-weight: 500; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; }
+    .question-text { font-size: 18px; font-weight: 500; color: var(--color-text-primary); margin: 0 0 1.5rem 0; }
+    .answer-option { display: flex; align-items: flex-start; margin-bottom: 0.75rem; cursor: pointer; }
+    .answer-option input[type="radio"] { cursor: pointer; margin-top: 4px; margin-right: 0.75rem; flex-shrink: 0; }
+    .answer-label { cursor: pointer; font-size: 16px; color: var(--color-text-primary); flex: 1; }
+    .answer-option input[type="radio"]:disabled { cursor: not-allowed; }
+    .answer-option input[type="radio"]:disabled + .answer-label { color: var(--color-text-secondary); }
+    .button-group { display: flex; gap: 1rem; margin-top: 2rem; }
+    .btn { padding: 0.75rem 1.5rem; border: none; border-radius: var(--border-radius-md); font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; }
+    .btn-primary { background: #10b981; color: white; }
+    .btn-primary:hover:not(:disabled) { background: #059669; }
+    .btn-primary:disabled { background: var(--color-background-secondary); color: var(--color-text-secondary); cursor: not-allowed; }
+    .btn-secondary { background: var(--color-background-secondary); color: var(--color-text-primary); border: 1px solid var(--color-border-secondary); }
+    .btn-secondary:hover:not(:disabled) { background: var(--color-background-tertiary); }
+    .results { background: var(--color-background-secondary); border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 2rem; text-align: center; margin-bottom: 2rem; }
+    .results-score { font-size: 48px; font-weight: 500; color: #10b981; margin-bottom: 0.5rem; }
+    .results-text { font-size: 18px; color: var(--color-text-primary); margin-bottom: 1rem; }
+    .results-details { font-size: 14px; color: var(--color-text-secondary); }
+    .correct { color: #10b981; font-weight: 500; }
+    .incorrect { color: #ef4444; font-weight: 500; }
+    .hidden { display: none; }
+  </style>
+
+  <div class="quiz-header">
+    <h1 class="quiz-title">🇮🇪 Irland Quiz</h1>
+    <p class="quiz-subtitle" id="subtitle">Teste dein Wissen über die grüne Insel</p>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <div id="quizContainer"></div>
+  <div id="resultsContainer" class="hidden"></div>
+
+  <script>
+    const allQuestions = [
+      { q: "Was ist die Hauptstadt der Republik Irland?", options: ["Dublin", "Cork", "Galway", "Limerick"], correct: 0 },
+      { q: "Was ist die Hauptstadt von Nordirland?", options: ["Belfast", "Dublin", "Derry", "London"], correct: 0 },
+      { q: "Welche Klippen, an denen Harry Potter gedreht wurde, gibt es?", options: ["Cliffs of Moher", "White Cliffs of Dover", "Skellig Cliffs", "Slieve League"], correct: 0 },
+      { q: "Welche Sprache spricht man in Irland außer Englisch?", options: ["Irisch (Gälisch)", "Französisch", "Spanisch", "Latein"], correct: 0 },
+      { q: "Wie lange braucht man mit der Fähre nach Irland?", options: ["ca. 3–4 Stunden", "30 Minuten", "10 Stunden", "1 Tag"], correct: 3 },
+      { q: "Welche Farben werden am St. Patrick's Day getragen?", options: ["Grün", "Rot", "Blau", "Schwarz"], correct: 0 },
+      { q: "Wann ist der St. Patrick's Day?", options: ["17. März", "1. Januar", "31. Oktober", "25. Dezember"], correct: 0 },
+      { q: "Wie sieht die Flagge von Irland aus?", options: ["Grün-Weiß-Orange (senkrecht)", "Rot-Weiß-Blau", "Schwarz-Rot-Gold", "Blau mit Sternen"], correct: 0 },
+      { q: "Was ist das Nationalgericht in Irland?", options: ["Irish Stew", "Döner Kebab", "Fish and Chips", "Haggis"], correct: 0 },
+      { q: "Worum geht es in der Legende des Giant's Causeway?", options: ["Ein Riese baute eine Brücke nach Schottland", "Ein König versteckte Gold", "Ein Drache lebte dort", "Wikinger kämpften dort"], correct: 0 },
+      { q: "Wurde Harry Potter in Irland gedreht?", options: ["Nein, hauptsächlich in Großbritannien", "Ja, komplett", "Nur in Dublin", "Nur auf Inseln"], correct: 0 },
+      { q: "Wie heißt der längste Fluss?", options: ["Shannon", "Themse", "Donau", "Mississippi"], correct: 0 },
+      { q: "Welche Erze werden am meisten abgebaut?", options: ["Zink und Blei", "Kohle", "Silber", "Kupfer"], correct: 0 },
+      { q: "Mit welcher Währung zahlt man in Nordirland?", options: ["Pfund", "Euro", "Yen", "Schilling"], correct: 0 },
+      { q: "Wie sieht die typische Landschaft in Irland aus?", options: ["Grüne Hügel und Weiden", "Wüste", "Tropischer Regenwald", "Hochgebirge"], correct: 0 },
+      { q: "Wie heißen die kleinen Fabelwesen, die Gold bewachen?", options: ["Leprechauns", "Elfen", "Trolle", "Zwerge"], correct: 0 },
+      { q: "Was sind die Mietkosten für die Guinness-Brauerei?", options: ["45 Pfund pro Jahr", "1000 Pfund", "Kostenlos", "1 Million Pfund"], correct: 0 },
+      { q: "Wie lange dauert der Mietvertrag von Guinness?", options: ["9000 Jahre", "100 Jahre", "500 Jahre", "Unbegrenzt"], correct: 0 },
+      { q: "Gibt es mehr Schafe als Menschen in Irland?", options: ["Ja", "Nein"], correct: 0 },
+      { q: "Setze ein: Das Nationalinstrument in Irland heißt ________ Whistle", options: ["Tin", "Chin", "Thin", "Death"], correct: 0 },
+      { q: "Auf welcher Seite fährt man in Irland?", options: ["Linksverkehr", "Rechtsverkehr", "Je nach Stadt", "Nur auf Autobahnen rechts"], correct: 0 }
+    ];
+
+    // Funktion zum Shuffeln eines Arrays
+    function shuffle(arr) {
+      return [...arr].sort(() => Math.random() - 0.5);
+    }
+
+    // Funktion zum Auswählen von 10 zufälligen Fragen
+    function getRandomQuestions(arr, count) {
+      const shuffled = shuffle(arr);
+      return shuffled.slice(0, count);
+    }
+
+    // Funktion zum Mischen der Antworten und Tracking der korrekten Position
+    function shuffleOptions(question) {
+      const options = question.options;
+      const correctAnswer = options[question.correct];
+      const shuffledOptions = shuffle(options);
+      const newCorrectIndex = shuffledOptions.indexOf(correctAnswer);
+      
+      return {
+        options: shuffledOptions,
+        correct: newCorrectIndex
+      };
+    }
+
+    let questions = getRandomQuestions(allQuestions, 10);
+    // Mische die Antworten für jede Frage
+    questions = questions.map(q => {
+      const shuffled = shuffleOptions(q);
+      return {
+        q: q.q,
+        options: shuffled.options,
+        correct: shuffled.correct
+      };
+    });
+    
+    let currentQuestion = 0;
+    let answers = new Array(questions.length).fill(null);
+
+    function renderQuestion() {
+      const quiz = questions[currentQuestion];
+      const progress = ((currentQuestion + 1) / questions.length) * 100;
+      
+      document.getElementById("progressFill").style.width = progress + "%";
+      document.getElementById("subtitle").textContent = `Frage ${currentQuestion + 1} von ${questions.length}`;
+
+      let html = `<div class="question-card">
+        <div class="question-number">Frage ${currentQuestion + 1}</div>
+        <h2 class="question-text">${quiz.q}</h2>
+        <div>`;
+      
+      quiz.options.forEach((opt, idx) => {
+        const checked = answers[currentQuestion] === idx ? 'checked' : '';
+        html += `<label class="answer-option">
+          <input type="radio" name="answer" value="${idx}" ${checked} onchange="selectAnswer(${idx})">
+          <span class="answer-label">${opt}</span>
+        </label>`;
+      });
+
+      html += `</div></div>
+        <div class="button-group">
+          <button class="btn btn-secondary" onclick="previousQuestion()" ${currentQuestion === 0 ? 'disabled' : ''}>← Zurück</button>
+          <button class="btn btn-primary" onclick="nextQuestion()" ${answers[currentQuestion] === null ? 'disabled' : ''}>Weiter →</button>
+          <button class="btn btn-primary" onclick="submitQuiz()" style="margin-left: auto;" ${currentQuestion === questions.length - 1 && answers[currentQuestion] !== null ? '' : 'style="display:none;"'}>Quiz abschließen</button>
+        </div>`;
+      
+      document.getElementById("quizContainer").innerHTML = html;
+    }
+
+    function selectAnswer(idx) {
+      answers[currentQuestion] = idx;
+      const nextBtn = document.querySelector('.btn-primary:not([style*="display"])');
+      if (nextBtn) nextBtn.disabled = false;
+    }
+
+    function nextQuestion() {
+      if (currentQuestion < questions.length - 1) {
+        currentQuestion++;
+        renderQuestion();
+      }
+    }
+
+    function previousQuestion() {
+      if (currentQuestion > 0) {
+        currentQuestion--;
+        renderQuestion();
+      }
+    }
+
+    function submitQuiz() {
+      let correct = 0;
+      answers.forEach((ans, idx) => {
+        if (ans === questions[idx].correct) correct++;
+      });
+
+      const percentage = Math.round((correct / questions.length) * 100);
+      let message = "";
+      if (percentage === 100) message = "Perfekt! Du bist ein echter Irland-Experte! 🏆";
+      else if (percentage >= 80) message = "Sehr gut! Du kennst Irland sehr gut! 🎉";
+      else if (percentage >= 60) message = "Gut gemacht! Du weißt eine Menge über Irland! 👍";
+      else if (percentage >= 40) message = "Nicht schlecht! Noch Platz für Verbesserung! 📚";
+      else message = "Viel Erfolg beim nächsten Versuch! 💪";
+
+      let resultHtml = `<div class="results">
+        <div class="results-score">${correct}/${questions.length}</div>
+        <div class="results-text">${percentage}% richtig</div>
+        <div class="results-details">${message}</div>
+      </div>`;
+
+      resultHtml += `<div style="margin-bottom: 2rem;"><h3 style="color: var(--color-text-primary); text-align: left;">Deine Antworten:</h3>`;
+      
+      questions.forEach((q, idx) => {
+        const isCorrect = answers[idx] === q.correct;
+        const icon = isCorrect ? "✓" : "✗";
+        const className = isCorrect ? "correct" : "incorrect";
+        resultHtml += `<div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--color-background-secondary); border-radius: var(--border-radius-md); border-left: 3px solid ${isCorrect ? '#10b981' : '#ef4444'};">
+          <div style="font-weight: 500; margin-bottom: 0.5rem;"><span class="${className}">${icon}</span> ${q.q}</div>
+          <div style="font-size: 14px; color: var(--color-text-secondary);">Deine Antwort: <strong>${q.options[answers[idx]]}</strong></div>
+          ${!isCorrect ? `<div style="font-size: 14px; color: #10b981; margin-top: 0.25rem;">Richtig: <strong>${q.options[q.correct]}</strong></div>` : ''}
+        </div>`;
+      });
+      
+      resultHtml += `</div><button class="btn btn-primary" onclick="location.reload()">Quiz neu starten</button>`;
+
+      document.getElementById("quizContainer").classList.add("hidden");
+      document.getElementById("resultsContainer").innerHTML = resultHtml;
+      document.getElementById("resultsContainer").classList.remove("hidden");
+    }
+
+    renderQuestion();
+  </script>
+</div>
